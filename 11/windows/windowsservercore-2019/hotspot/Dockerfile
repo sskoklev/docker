@@ -1,5 +1,6 @@
 # escape=`
 FROM jenkins4eval/openjdk:11-hotspot-windowsservercore-ltsc2019
+LABEL maintainer="stiven@gmail.com"
 
 ARG user=jenkins
 ARG http_port=8080
@@ -67,5 +68,16 @@ COPY jenkins-support.psm1 C:/ProgramData/Jenkins
 COPY jenkins.ps1 C:/ProgramData/Jenkins
 # See https://github.com/jenkinsci/plugin-installation-manager-tool#cli-options for information on parameters for jenkins-plugin-cli.ps1 for installing plugins into the docker image
 COPY jenkins-plugin-cli.ps1 C:/ProgramData/Jenkins
+
+# Install GIT
+ARG GIT_VERSION=2.7.2
+ENV GIT_VERSION=$GIT_VERSION
+ARG GIT_EXE=Git-${GIT_VERSION}-bit.exe
+
+# RUN Invoke-Webrequest "https://github.com/git-for-windows/git/releases/download/v${GIT_VERSION}.windows.1/${GIT_EXE}" -OutFile git.exe -UseBasicParsing
+RUN Invoke-Webrequest https://github.com/git-for-windows/git/releases/download/v2.7.2.windows.1/Git-2.7.2-64-bit.exe -OutFile git.exe -UseBasicParsing
+
+RUN Start-Process git.exe -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /CLOSEAPPLICATIONS /DIR=c:\git\' -Wait
+ENV PATH="c:\git\cmd:${PATH}"
 
 ENTRYPOINT ["powershell.exe", "-f", "C:/ProgramData/Jenkins/jenkins.ps1"]
